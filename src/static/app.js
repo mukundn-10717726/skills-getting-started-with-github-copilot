@@ -35,6 +35,44 @@ document.addEventListener("DOMContentLoaded", () => {
         option.textContent = name;
         activitySelect.appendChild(option);
       });
+
+      // Add click handlers for delete buttons
+      document.querySelectorAll('.delete-participant').forEach(button => {
+        button.addEventListener('click', async (e) => {
+          const activity = e.target.dataset.activity;
+          const email = e.target.dataset.email;
+          
+          try {
+            const response = await fetch(
+              `/activities/${encodeURIComponent(activity)}/unregister?email=${encodeURIComponent(email)}`,
+              { method: "POST" }
+            );
+
+            const result = await response.json();
+
+            if (response.ok) {
+              messageDiv.textContent = result.message;
+              messageDiv.className = "success message";
+              // Refresh activities to show updated participants
+              fetchActivities();
+            } else {
+              messageDiv.textContent = result.detail || "An error occurred";
+              messageDiv.className = "error message";
+            }
+
+            messageDiv.classList.remove("hidden");
+
+            setTimeout(() => {
+              messageDiv.classList.add("hidden");
+            }, 5000);
+          } catch (error) {
+            console.error("Error unregistering:", error);
+            messageDiv.textContent = "Failed to unregister. Please try again.";
+            messageDiv.className = "error message";
+            messageDiv.classList.remove("hidden");
+          }
+        });
+        });
     } catch (error) {
       activitiesList.innerHTML = "<p>Failed to load activities. Please try again later.</p>";
       console.error("Error fetching activities:", error);
